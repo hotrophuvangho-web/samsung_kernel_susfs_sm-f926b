@@ -1635,7 +1635,7 @@ int usb_check_whitelist_for_mdm(struct usb_device *dev)
 EXPORT_SYMBOL(usb_check_whitelist_for_mdm);
 
 #ifndef CONFIG_DISABLE_LOCKSCREEN_USB_RESTRICTION
-static bool usb_match_any_interface_for_id(struct usb_device *udev,
+static bool __maybe_unused usb_match_any_interface_for_id(struct usb_device *udev,
 				    int *whitelist_array)
 {
 	int i = 0;
@@ -1662,66 +1662,13 @@ static bool usb_match_any_interface_for_id(struct usb_device *udev,
 
 int usb_check_allowlist_for_lockscreen_enabled_id(struct usb_device *dev)
 {
-	int *allowlist_array;
-	struct otg_notify *o_notify;
-	struct usb_notify *u_notify;
-	int ret = USB_NOTIFY_NORESTRICT, noti = 0;
-	
-	o_notify = get_otg_notify();
-	if (o_notify == NULL) {
-		pr_err("o_notify is NULL\n");
-		return 0;
-	}
-
-	u_notify = (struct usb_notify *)(o_notify->u_notify);
-	if (u_notify == NULL) {
-		pr_err("u_notify is NULL\n");
-		return 0;
-	}
-
-	mutex_lock(&u_notify->udev.lockscreen_enabled_lock);
-	notify_event_lock(u_notify, NOTIFY_EVENT_STATE);
-	if (u_notify->lock_state == USB_NOTIFY_LOCK_USB_RESTRICT) {
-		allowlist_array = u_notify->udev.allowlist_array_lockscreen_enabled_id;
-		pr_info("%s allowlist : %s\n", __func__,
-				u_notify->udev.allowlist_str_lockscreen_enabled_id);
-		if (usb_match_any_interface_for_id(dev, allowlist_array)) {
-			pr_info("the device is matched with allowlist for lockscreen!\n");
-			ret = USB_NOTIFY_ALLOWLOST;
-			goto done;
-		} else {
-			pr_info("the device is unmatched with allowlist for lockscreen!\n");
-			noti = 1;
-			if (u_notify->allowlist_restricted < MAX_VAL)
-				u_notify->allowlist_restricted++;
-			ret = USB_NOTIFY_NOLIST;
-		}
-	}		
-done:
-	notify_event_unlock(u_notify, NOTIFY_EVENT_STATE);
-	mutex_unlock(&u_notify->udev.lockscreen_enabled_lock);
-	if (noti)
-		send_usb_restrict_uevent(USB_TIME_SECURE_RESTRICTED);
-	return ret;
+	return USB_NOTIFY_NORESTRICT;
 }
 EXPORT_SYMBOL(usb_check_allowlist_for_lockscreen_enabled_id);
 
 bool check_usb_restrict_lock_state(struct otg_notify *n)
 {
-	struct usb_notify *u_notify = NULL;
-
-	if (!n) {
-		pr_err("%s otg_notify is null\n", __func__);
-		return true;
-	}
-	u_notify = (struct usb_notify *)(n->u_notify);
-
-	if (!u_notify) {
-		pr_err("%s u_notify structure is null\n", __func__);
-		return true;
-	}
-
-	return (u_notify->lock_state == USB_NOTIFY_LOCK_USB_RESTRICT);
+	return false;
 }
 EXPORT_SYMBOL(check_usb_restrict_lock_state);
 #endif
@@ -2686,6 +2633,9 @@ bool is_blocked(struct otg_notify *n, int type)
 {
 	struct usb_notify *u_notify = NULL;
 	int ret = 0;
+
+	if (type == NOTIFY_BLOCK_TYPE_HOST)
+		return false;
 
 	if (!n) {
 		pr_err("%s otg_notify is null\n", __func__);
