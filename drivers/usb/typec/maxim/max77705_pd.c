@@ -659,11 +659,9 @@ void max77705_vbus_turn_on_ctrl(struct max77705_usbc_platform_data *usbc_data, b
 
 #if defined(CONFIG_USB_HOST_NOTIFY)
 	if (o_notify && o_notify->booting_delay_sec && enable) {
-		pr_info("%s %d, is booting_delay_sec. skip to control booster\n",
+		pr_info("%s %d, clearing booting_delay_sec to enable booster immediately\n",
 			__func__, __LINE__);
-		reserve_booster = 1;
-		send_otg_notify(o_notify, NOTIFY_EVENT_RESERVE_BOOSTER, 1);
-		return;
+		o_notify->booting_delay_sec = 0;
 	}
 	if (!enable) {
 		if (reserve_booster) {

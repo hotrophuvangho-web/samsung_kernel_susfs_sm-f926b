@@ -696,11 +696,9 @@ static void vbus_turn_on_ctrl(struct pdic_policy *pp_data, bool enable)
 	}
 
 	if (o_notify->booting_delay_sec && on) {
-		pr_info("%s is booting_delay_sec. skip to control booster\n",
+		pr_info("%s is booting_delay_sec. clearing to enable booster immediately\n",
 			__func__);
-		reserve_booster = 1;
-		send_otg_notify(o_notify, NOTIFY_EVENT_RESERVE_BOOSTER, 1);
-		goto err;
+		o_notify->booting_delay_sec = 0;
 	}
 
 	if (reserve_booster && !on) {

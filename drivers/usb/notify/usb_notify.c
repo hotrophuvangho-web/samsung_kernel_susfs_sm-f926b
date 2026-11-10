@@ -817,12 +817,8 @@ static void reserve_state_check(struct work_struct *work)
 	pr_info("%s +\n", __func__);
 
 #ifndef CONFIG_DISABLE_LOCKSCREEN_USB_RESTRICTION
-	/* We can wait up to two minutes. */
-	wait_event_interruptible(u_noti->init_delay,
-		(u_noti->lock_state != USB_NOTIFY_INIT_STATE
-			|| u_noti->b_delay.reserve_state == NOTIFY_EVENT_VBUS));
-
-	pr_info("%s after wait\n", __func__);
+	/* Lockscreen restriction wait removed to prevent OTG booster block */
+	pr_info("%s after wait (bypassed)\n", __func__);
 #endif
 
 	if (u_noti->o_notify->booting_delay_sync_usb) {
@@ -3517,7 +3513,7 @@ int set_otg_notify(struct otg_notify *n)
 	}
 
 #ifndef CONFIG_DISABLE_LOCKSCREEN_USB_RESTRICTION
-	u_notify->udev.secure_lock = USB_NOTIFY_INIT_STATE;
+	u_notify->udev.secure_lock = USB_NOTIFY_UNLOCK;
 #endif
 	u_notify->typec_status.usb_comm_capable = USB_NOTIFY_INIT_COM_CAPABLE;
 
@@ -3540,7 +3536,7 @@ int set_otg_notify(struct otg_notify *n)
 
 	if (n->booting_delay_sec) {
 #ifndef CONFIG_DISABLE_LOCKSCREEN_USB_RESTRICTION
-		u_notify->lock_state = USB_NOTIFY_INIT_STATE;
+		u_notify->lock_state = USB_NOTIFY_UNLOCK;
 #endif
 		INIT_DELAYED_WORK(&u_notify->b_delay.booting_work,
 				  reserve_state_check);
@@ -3635,8 +3631,7 @@ void enable_usb_notify(void)
 	}
 
 	o_notify->booting_delay_sync_usb = 0;
-	if(!u_notify->o_notify->booting_delay_sec)
-		schedule_delayed_work(&u_notify->b_delay.booting_work, 0);
+	schedule_delayed_work(&u_notify->b_delay.booting_work, 0);
 }
 EXPORT_SYMBOL(enable_usb_notify);
 

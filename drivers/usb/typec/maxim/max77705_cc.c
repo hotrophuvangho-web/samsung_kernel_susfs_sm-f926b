@@ -713,12 +713,7 @@ static void max77705_ccstat_irq_handler(void *data, int irq)
 				cc_data->previous_pr = cc_data->current_pr;
 				cc_data->current_pr = SRC;
 
-				if (prev_power_role == TYPEC_SINK)
-					max77705_vbus_turn_on_ctrl(usbc_data, ON, false);
-#if IS_ENABLED(CONFIG_DUAL_ROLE_USB_INTF)
-				else if (prev_power_role == DUAL_ROLE_PROP_PR_SNK)
-					max77705_vbus_turn_on_ctrl(usbc_data, ON, true);
-#endif
+				max77705_vbus_turn_on_ctrl(usbc_data, ON, false);
 			}
 			break;
 	case cc_Audio_Accessory:
