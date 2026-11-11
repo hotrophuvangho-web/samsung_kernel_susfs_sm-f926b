@@ -585,6 +585,8 @@ static void max77705_ccstat_irq_handler(void *data, int irq)
 	if (irq == CCIC_IRQ_INIT_DETECT) {
 		if (ccstat == cc_SINK)
 			msg_maxim("initial time : SNK");
+		else if (ccstat == cc_SOURCE)
+			msg_maxim("initial time : SRC");
 		else
 			return;
 	}

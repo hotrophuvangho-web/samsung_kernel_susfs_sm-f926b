@@ -1576,6 +1576,8 @@ static void max77705_datarole_irq_handler(void *data, int irq)
 	if (irq == CCIC_IRQ_INIT_DETECT) {
 		if (usbc_data->pd_data->cc_status == CC_SNK)
 			msg_maxim("initial time : SNK");
+		else if (usbc_data->pd_data->cc_status == CC_SRC || datarole == DFP)
+			msg_maxim("initial time : SRC or DFP");
 		else
 			return;
 	}
@@ -1613,7 +1615,8 @@ static void max77705_datarole_irq_handler(void *data, int irq)
 				complete(&usbc_data->typec_reverse_completion);
 				}
 
-				if (usbc_data->cc_data->current_pr == SNK && !(usbc_data->is_first_booting)) {
+				if ((usbc_data->cc_data->current_pr == SNK || usbc_data->cc_data->current_pr == SRC)
+					&& !(usbc_data->is_first_booting)) {
 					cancel_delayed_work(&pd_data->send_identity_work);
 					queue_delayed_work(pd_data->wqueue,
 							&pd_data->send_identity_work,

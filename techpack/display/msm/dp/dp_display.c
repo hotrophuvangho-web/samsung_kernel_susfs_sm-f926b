@@ -3036,6 +3036,12 @@ static void secdp_process_attention(struct dp_display_private *dp,
 			goto end;
 		}
 
+		if (!dp_display_state_is(DP_STATE_ENABLED) || secdp_check_boot_time() > 0) {
+			DP_INFO("Skip HPD LOW during boot/disabled state (enabled:%d, boot wait:%d)\n",
+				!!dp_display_state_is(DP_STATE_ENABLED), secdp_check_boot_time());
+			goto end;
+		}
+
 		sec->dex.status = sec->dex.prev = sec->dex.curr = DEX_DISABLED;
 		secdp_clear_link_status_cnt(dp->link);
 		dp_display_disconnect_sync(dp);
