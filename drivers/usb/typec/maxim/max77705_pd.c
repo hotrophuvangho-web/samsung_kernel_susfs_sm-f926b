@@ -659,9 +659,11 @@ void max77705_vbus_turn_on_ctrl(struct max77705_usbc_platform_data *usbc_data, b
 
 #if defined(CONFIG_USB_HOST_NOTIFY)
 	if (o_notify && o_notify->booting_delay_sec && enable) {
-		pr_info("%s %d, clearing booting_delay_sec to enable booster immediately\n",
-			__func__, __LINE__);
-		o_notify->booting_delay_sec = 0;
+		pr_info("%s %d, is booting_delay_sec (%d). Reserving booster\n",
+			__func__, __LINE__, o_notify->booting_delay_sec);
+		reserve_booster = 1;
+		send_otg_notify(o_notify, NOTIFY_EVENT_RESERVE_BOOSTER, 1);
+		return;
 	}
 	if (!enable) {
 		if (reserve_booster) {
@@ -1576,8 +1578,6 @@ static void max77705_datarole_irq_handler(void *data, int irq)
 	if (irq == CCIC_IRQ_INIT_DETECT) {
 		if (usbc_data->pd_data->cc_status == CC_SNK)
 			msg_maxim("initial time : SNK");
-		else if (usbc_data->pd_data->cc_status == CC_SRC || datarole == DFP)
-			msg_maxim("initial time : SRC or DFP");
 		else
 			return;
 	}

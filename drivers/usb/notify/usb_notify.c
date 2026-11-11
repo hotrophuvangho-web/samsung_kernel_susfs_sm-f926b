@@ -846,6 +846,15 @@ static void reserve_state_check(struct work_struct *work)
 						state, &enable);
 	}
 
+	if (state == NOTIFY_EVENT_RESERVE_BOOSTER || u_noti->reserve_vbus_booster) {
+		pr_info("%s: booting delay finished, turning on reserved booster!\n", __func__);
+		if (u_noti->o_notify->vbus_drive)
+			u_noti->o_notify->vbus_drive(1);
+		u_noti->reserve_vbus_booster = 0;
+		u_noti->b_delay.reserve_state = NOTIFY_EVENT_NONE;
+		send_otg_notify(u_noti->o_notify, NOTIFY_EVENT_HOST, 1);
+	}
+
 	notify_event_unlock(u_noti, NOTIFY_EVENT_STATE);
 
 #ifndef CONFIG_DISABLE_LOCKSCREEN_USB_RESTRICTION

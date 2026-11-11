@@ -585,9 +585,14 @@ static void max77705_ccstat_irq_handler(void *data, int irq)
 	if (irq == CCIC_IRQ_INIT_DETECT) {
 		if (ccstat == cc_SINK)
 			msg_maxim("initial time : SNK");
-		else if (ccstat == cc_SOURCE)
-			msg_maxim("initial time : SRC");
-		else
+		else if (ccstat == cc_SOURCE) {
+			msg_maxim("initial time : SRC detected, reserving booster for boot");
+#if IS_ENABLED(CONFIG_USB_HOST_NOTIFY)
+			if (o_notify)
+				send_otg_notify(o_notify, NOTIFY_EVENT_RESERVE_BOOSTER, 1);
+#endif
+			return;
+		} else
 			return;
 	}
 
